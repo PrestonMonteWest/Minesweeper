@@ -1,7 +1,3 @@
-// Name: Preston West
-// Section: MCIS5103
-// Student ID: 909556994
-
 package minesweeper;
 
 import java.awt.Dimension;
@@ -20,121 +16,99 @@ import javax.swing.JButton;
  *
  * @author Preston West
  */
-public final class Piece extends JButton implements MouseListener
-{
-    public enum State
-    {
+public final class Piece extends JButton implements MouseListener {
+    public enum State {
         CLICKED, UNCLICKED, FLAGGED, UNKNOWN
     }
-    
-    private final int i;
-    private final int j;
+
     private final int id;
     private ArrayList<Piece> adjPieces;
     private boolean enabled;
     private boolean isMine;
     private int mineCount;
     private State state;
-    
-    public static Piece Factory(int i, int j, int id)
-    {
+
+    public static Piece Factory(int i, int j, int id) {
         Piece pieceInstance = new Piece(i, j, id);
         pieceInstance.addMouseListener(pieceInstance);
-        
+
         return pieceInstance;
     }
-    
-    private Piece(int i, int j, int id)
-    {
-        this.i = i;
-        this.j = j;
+
+    private Piece(int i, int j, int id) {
         this.id = id;
         this.adjPieces = null;
         isMine = false;
         enabled = true;
         mineCount = 0;
         state = State.UNCLICKED;
-        
+
         int width;
         int height;
-        try
-        {
+        try {
             ImageIcon icon = setIcon("/assets/empty-35px.png");
 
             width = icon.getIconWidth();
             height = icon.getIconHeight();
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             width = 35;
             height = 35;
             System.err.println(ex.getMessage());
         }
         setPreferredSize(new Dimension(width, height));
-        
+
         // Disable JButton event functionality
         super.setEnabled(false);
     }
-    
-    public void setAdjacentPieces(ArrayList<Piece> pieces)
-    {
+
+    public void setAdjacentPieces(ArrayList<Piece> pieces) {
         adjPieces = pieces;
     }
-    
-    public boolean isMine()
-    {
+
+    public boolean isMine() {
         return isMine;
     }
-    
-    public boolean setIsMine(boolean newIsMine)
-    {
-        if (isMine == newIsMine)
-        {
+
+    public boolean setIsMine(boolean newIsMine) {
+        if (isMine == newIsMine) {
             return isMine;
         }
         isMine = newIsMine;
-        
+
         adjPieces.forEach((piece) -> {
-            if (isMine)
-            {
+            if (isMine) {
                 piece.mineCount++;
             }
-            else
-            {
+            else {
                 piece.mineCount--;
             }
         });
-        
+
         return isMine;
     }
-    
-    public void setState(State state)
-    {
+
+    public void setState(State state) {
         this.state = state;
     }
-    
-    public ImageIcon setIcon(String assetPath) throws IOException
-    {
+
+    public ImageIcon setIcon(String assetPath) throws IOException {
         BufferedImage image = ImageIO.read(getClass().getResource(assetPath));
         ImageIcon icon = new ImageIcon(image);
-        
+
         setIcon(icon);
         setDisabledIcon(icon);
-        
+
         return icon;
     }
-    
-    public State rightClick()
-    {
-        if (!enabled)
-        {
+
+    public State rightClick() {
+        if (!enabled) {
             return state;
         }
-        
-        try
-        {
-            switch (state)
-            {
+
+        try {
+            switch (state) {
                 case FLAGGED:
                     state = State.UNKNOWN;
                     setIcon("/assets/question-mark-35px.png");
@@ -149,125 +123,107 @@ public final class Piece extends JButton implements MouseListener
                     break;
             }
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             System.err.println(ex.getMessage());
         }
-        
+
         return state;
     }
-    
-    public void leftClick()
-    {        
-        // If click-able
-        if (enabled && state == State.UNCLICKED)
-        {
-            if (isMine)
-            {
+
+    public void leftClick() {
+        // If clickable
+        if (enabled && state == State.UNCLICKED) {
+            if (isMine) {
                 // Send action event(s) to board(s)
                 ActionEvent event = new ActionEvent(this, id, "trigger");
-                for (ActionListener listener : getActionListeners())
-                {
+                for (ActionListener listener : getActionListeners()) {
                     listener.actionPerformed(event);
                 }
                 return;
             }
-            
+
             state = State.CLICKED;
-            
+
             String assetPath = String.format("/assets/%d-35px.png", mineCount);
-            try
-            {
+            try {
                 setIcon(assetPath);
             }
-            catch (IOException ex)
-            {
+            catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
-            
-            if (mineCount == 0)
-            {
+
+            if (mineCount == 0) {
                 adjPieces.forEach((piece) -> {
-                    if (piece.state == State.UNCLICKED)
-                    {
+                    if (piece.state == State.UNCLICKED) {
                         piece.leftClick();
                     }
                 });
             }
         }
     }
-    
-    public void reset()
-    {
+
+    public void reset() {
         isMine = false;
         mineCount = 0;
         state = State.UNCLICKED;
         enabled = true;
-        
+
         int width;
         int height;
-        try
-        {
+        try {
             ImageIcon icon = setIcon("/assets/empty-35px.png");
 
             width = icon.getIconWidth();
             height = icon.getIconHeight();
         }
-        catch (IOException ex)
-        {
+        catch (IOException ex) {
             width = 35;
             height = 35;
             System.err.println(ex.getMessage());
         }
         setPreferredSize(new Dimension(width, height));
     }
-    
-    public State getState()
-    {
+
+    public State getState() {
         return state;
     }
-    
+
     @Override
-    public void setEnabled(boolean enabled)
-    {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     @Override
-    public void mouseClicked(MouseEvent e)
-    {
+    public void mouseClicked(MouseEvent e) {
         int button = e.getButton();
         Clock mainClock = ((MainFrame)getTopLevelAncestor()).clock;
-        switch (button)
-        {
+        switch (button) {
             case 1:
                 leftClick();
-                
-                if (!mainClock.running)
-                {
+
+                if (!mainClock.running) {
                     mainClock.start();
                 }
                 break;
             case 3:
                 rightClick();
-                
-                if (!mainClock.running)
-                {
+
+                if (!mainClock.running) {
                     mainClock.start();
                 }
                 break;
         }
     }
-    
+
     @Override
     public void mousePressed(MouseEvent e) {}
-    
+
     @Override
     public void mouseReleased(MouseEvent e) {}
-    
+
     @Override
     public void mouseEntered(MouseEvent e) {}
-    
+
     @Override
     public void mouseExited(MouseEvent e) {}
 }
